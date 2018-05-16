@@ -36,7 +36,7 @@ class S3Notifier {
   getCurrentLastModified() {
     return this.s3.headObject(this.params).promise()
       .then(data => {
-        this.lastModified = data.LastModified;
+        return this.lastModified = data.LastModified;
       })
       .catch(() => {
         this.ui.writeError('error fetching S3 last modified; notifications disabled');
@@ -44,9 +44,11 @@ class S3Notifier {
   }
 
   schedulePoll() {
-    setTimeout(() => {
-      this.poll();
-    }, this.pollTime);
+    if(!this.timeout) {
+      this.timeout = setTimeout(() => {
+        this.poll();
+      }, this.pollTime);
+    }
   }
 
   poll() {
@@ -61,7 +63,7 @@ class S3Notifier {
     if (newLastModified.getTime() !== this.lastModified.getTime()) {
       this.ui.writeLine('config modified; old=%s; new=%s', this.lastModified, newLastModified);
       this.lastModified = newLastModified;
-      this.subscribers.forEach((sub) => sub());
+      this.subscribers.forEach((sub) => sub(newLastModified));
     }
   }
 }
