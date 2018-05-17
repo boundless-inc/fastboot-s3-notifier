@@ -54,6 +54,7 @@ class S3Notifier {
   poll() {
     this.s3.headObject(this.params).promise()
       .then(data => {
+        this.timeout = null;
         this.compareLastModifieds(data.LastModified);
         this.schedulePoll();
       });
